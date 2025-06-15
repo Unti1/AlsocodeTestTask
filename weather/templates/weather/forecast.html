@@ -1,0 +1,86 @@
+{% extends 'weather/base.html' %}
+
+{% block title %}Прогноз погоды | WeatherApp{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Поиск прогноза -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+        <h2 class="text-2xl font-bold mb-4">Прогноз погоды</h2>
+        <form id="forecast-form" class="flex gap-4">
+            <input type="text" name="city" placeholder="Введите название города" 
+                   class="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button type="submit" 
+                    class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                Показать прогноз
+            </button>
+        </form>
+    </div>
+
+    <!-- Прогноз на 7 дней -->
+    <div id="forecast-results" class="hidden">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h3 id="forecast-city" class="text-2xl font-bold mb-6"></h3>
+            <div id="forecast-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Здесь будут карточки с прогнозом -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const forecastForm = document.getElementById('forecast-form');
+    const forecastResults = document.getElementById('forecast-results');
+    const forecastCity = document.getElementById('forecast-city');
+    const forecastCards = document.getElementById('forecast-cards');
+
+    forecastForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const city = this.querySelector('input[name="city"]').value;
+        
+        fetch(`/api/weather/forecast/?city=${encodeURIComponent(city)}`)
+            .then(response => response.json())
+            .then(data => {
+                forecastCity.textContent = `Прогноз погоды в ${data.city}, ${data.country}`;
+                
+                forecastCards.innerHTML = data.forecasts.map(forecast => `
+                    <div class="bg-gray-50 rounded-lg p-6 shadow-sm">
+                        <div class="text-center mb-4">
+                            <p class="text-lg font-semibold">${new Date(forecast.date).toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+                        </div>
+                        <div class="flex items-center justify-center mb-4">
+                            <img src="http://openweathermap.org/img/wn/${forecast.icon}@2x.png" alt="${forecast.description}" class="w-16 h-16">
+                        </div>
+                        <div class="text-center mb-4">
+                            <p class="text-3xl font-bold">${forecast.avg_temperature}°C</p>
+                            <p class="text-gray-600">${forecast.description}</p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <p class="text-gray-600">Влажность</p>
+                                <p class="font-semibold">${forecast.avg_humidity}%</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600">Ветер</p>
+                                <p class="font-semibold">${forecast.avg_wind_speed} м/с</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600">Давление</p>
+                                <p class="font-semibold">${forecast.avg_pressure} гПа</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600">Облачность</p>
+                                <p class="font-semibold">${forecast.avg_clouds}%</p>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                forecastResults.classList.remove('hidden');
+            })
+            .catch(error => console.error('Error:', error));
+    });
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,31 @@
+[project]
+name = "weather-app"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Until",email = "kostyuchenko.work@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "djangorestframework (==3.14.0)",
+    "psycopg2-binary (==2.9.9)",
+    "python-dotenv (==1.0.1)",
+    "requests (==2.31.0)",
+    "django-cors-headers (==4.3.1)",
+    "gunicorn (==21.2.0)",
+    "django (>=5.2.3,<6.0.0)",
+    "coreapi (>=2.3.3,<3.0.0)",
+    "markdown (>=3.8,<4.0)",
+    "django-filter (>=25.1,<26.0)"
+]
+
+[tool.poetry]
+
+[tool.poetry.group.dev.dependencies]
+pytest = "8.0.0"
+pytest-django = "4.8.0"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

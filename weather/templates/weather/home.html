@@ -1,0 +1,182 @@
+{% extends 'weather/base.html' %}
+
+{% block title %}Главная | WeatherApp{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Блок с геолокацией -->
+    <div id="location-weather" class="mb-8 hidden">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-2xl font-bold mb-4">Погода в вашем городе</h2>
+            <div id="location-weather-content" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Здесь будет контент -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Поиск погоды -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+        <h2 class="text-2xl font-bold mb-4">Поиск погоды</h2>
+        <form method="get" action="{% url 'weather-search' %}" class="flex gap-4">
+            <input type="text" name="city" placeholder="Введите название города" 
+                   class="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button type="submit" 
+                    class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                Поиск
+            </button>
+        </form>
+    </div>
+
+    <!-- Результаты поиска -->
+    <div id="search-results" class="hidden">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div id="weather-content" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Здесь будет контент -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Функция для получения геолокации
+    function getLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(showPosition, showError);
+        } else {
+            console.log("Геолокация не поддерживается этим браузером.");
+        }
+    }
+
+    // Функция для отображения погоды по координатам
+    function showPosition(position) {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        
+        fetch(`/api/weather/by_coordinates/?lat=${lat}&lon=${lon}`)
+            .then(response => response.json())
+            .then(data => {
+                const locationWeather = document.getElementById('location-weather');
+                const locationWeatherContent = document.getElementById('location-weather-content');
+                
+                locationWeatherContent.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-xl font-semibold">${data.city}</h3>
+                            <p class="text-gray-600">${data.country}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-3xl font-bold">${data.temperature}°C</p>
+                            <p class="text-gray-600">Ощущается как ${data.feels_like}°C</p>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <p class="text-lg">${data.description}</p>
+                        <div class="grid grid-cols-2 gap-4 mt-4">
+                            <div>
+                                <p class="text-gray-600">Влажность</p>
+                                <p class="font-semibold">${data.humidity}%</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600">Ветер</p>
+                                <p class="font-semibold">${data.wind_speed} м/с, ${data.wind_direction}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600">Давление</p>
+                                <p class="font-semibold">${data.pressure} гПа</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600">Облачность</p>
+                                <p class="font-semibold">${data.clouds}%</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                locationWeather.classList.remove('hidden');
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    // Функция для обработки ошибок геолокации
+    function showError(error) {
+        switch(error.code) {
+            case error.PERMISSION_DENIED:
+                console.log("Пользователь отклонил запрос на геолокацию.");
+                break;
+            case error.POSITION_UNAVAILABLE:
+                console.log("Информация о местоположении недоступна.");
+                break;
+            case error.TIMEOUT:
+                console.log("Истекло время ожидания запроса на получение местоположения.");
+                break;
+            case error.UNKNOWN_ERROR:
+                console.log("Произошла неизвестная ошибка.");
+                break;
+        }
+    }
+
+    // Запрашиваем геолокацию при загрузке страницы
+    getLocation();
+
+    // Обработка формы поиска
+    const searchForm = document.querySelector('form');
+    const searchResults = document.getElementById('search-results');
+    const weatherContent = document.getElementById('weather-content');
+
+    searchForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const city = this.querySelector('input[name="city"]').value;
+        
+        fetch(`/api/weather/search/?city=${encodeURIComponent(city)}`)
+            .then(response => response.json())
+            .then(data => {
+                weatherContent.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-xl font-semibold">${data.city}</h3>
+                            <p class="text-gray-600">${data.country}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-3xl font-bold">${data.temperature}°C</p>
+                            <p class="text-gray-600">Ощущается как ${data.feels_like}°C</p>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <p class="text-lg">${data.description}</p>
+                        <div class="grid grid-cols-2 gap-4 mt-4">
+                            <div>
+                                <p class="text-gray-600">Влажность</p>
+                                <p class="font-semibold">${data.humidity}%</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600">Ветер</p>
+                                <p class="font-semibold">${data.wind_speed} м/с, ${data.wind_direction}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600">Давление</p>
+                                <p class="font-semibold">${data.pressure} гПа</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600">Облачность</p>
+                                <p class="font-semibold">${data.clouds}%</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600">Восход</p>
+                                <p class="font-semibold">${data.sunrise}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600">Закат</p>
+                                <p class="font-semibold">${data.sunset}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                searchResults.classList.remove('hidden');
+            })
+            .catch(error => console.error('Error:', error));
+    });
+});
+</script>
+{% endblock %} 
