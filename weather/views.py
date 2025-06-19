@@ -124,9 +124,20 @@ class WeatherViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"])
     def forecast(self, request):
         city = request.query_params.get("city", "Moscow")
+        if not city.isalpha():
+            return Response(
+                {"error": "Название города должно содержать только буквы"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         weather_service = WeatherService()
-        forecast_data = weather_service.get_forecast(city)
-        return Response(forecast_data)
+        try:
+            forecast_data = weather_service.get_forecast(city)
+            return Response(forecast_data)
+        except Exception:
+            return Response(
+                {"error": "Город не найден или ошибка API"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
     @swagger_auto_schema(
         method="get",

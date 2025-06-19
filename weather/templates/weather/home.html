@@ -17,7 +17,7 @@
     <!-- Поиск погоды -->
     <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
         <h2 class="text-2xl font-bold mb-4">Поиск погоды</h2>
-        <form method="get" action="{% url 'weather-search' %}" class="flex gap-4">
+        <form id="search-form" method="get" action="{% url 'weather-search' %}" class="flex gap-4">
             <input type="text" name="city" placeholder="Введите название города" 
                    class="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
             <button type="submit" 
@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', function() {
     getLocation();
 
     // Обработка формы поиска
-    const searchForm = document.querySelector('form');
+    const searchForm = document.getElementById('search-form');
     const searchResults = document.getElementById('search-results');
     const weatherContent = document.getElementById('weather-content');
 
