@@ -1,4 +1,4 @@
-{% extends 'weather/base.html' %}
+{% extends 'base.html' %}
 
 {% block title %}Главная | WeatherApp{% endblock %}
 
@@ -127,10 +127,19 @@ document.addEventListener('DOMContentLoaded', function() {
     searchForm.addEventListener('submit', function(e) {
         e.preventDefault();
         const city = this.querySelector('input[name="city"]').value;
-        
-        fetch(`/api/weather/search/?city=${encodeURIComponent(city)}`)
+
+        // Очищаем старый результат/ошибку и скрываем блок
+        weatherContent.innerHTML = '';
+        searchResults.classList.add('hidden');
+
+        fetch(`/api/weather/search/?q=${encodeURIComponent(city)}`)
             .then(response => response.json())
             .then(data => {
+                if (data.error) {
+                    weatherContent.innerHTML = `<div class="text-red-600 font-bold">${data.error}</div>`;
+                    searchResults.classList.remove('hidden');
+                    return;
+                }
                 weatherContent.innerHTML = `
                     <div class="flex items-center justify-between">
                         <div>
@@ -172,10 +181,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                     </div>
                 `;
-                
                 searchResults.classList.remove('hidden');
             })
-            .catch(error => console.error('Error:', error));
+            .catch(error => {
+                weatherContent.innerHTML = `<div class="text-red-600 font-bold">Ошибка запроса к серверу</div>`;
+                searchResults.classList.remove('hidden');
+            });
     });
 });
 </script>

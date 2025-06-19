@@ -1,9 +1,16 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
+
+def validate_city(value):
+    if not value.isalpha():
+        raise ValidationError('Название города должно содержать только буквы')
+    if value.isdigit():
+        raise ValidationError('Название города не может быть числом')
 
 class Location(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='locations')
-    city = models.CharField(max_length=100)
+    city = models.CharField(max_length=100, validators=[validate_city])
     country = models.CharField(max_length=100)
     latitude = models.FloatField()
     longitude = models.FloatField()
